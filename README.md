@@ -1,6 +1,6 @@
 # Graficos-Interativos
 ## Resumo
-  O arquivo Indicadores.html tem como objetivo construir gráficos interativos com os indicadore epidemiológicos disponíveis no repositório Indicadores-Epidemiológicos. Tendo o portal do projeto como fim para amostragem dos dados, o código é estruturado em html e o acesso aos dados e exibição dos gráficos em javascript, de forma a exibir gráficos dinâmicos e com dados atualizados dos indicadores por semana epidemiológica.
+  O arquivo Indicadores.html tem como objetivo construir gráficos interativos com os indicadore epidemiológicos disponíveis no repositório Indicadores-Epidemiológicos. Tendo o portal do projeto como fim para amostragem dos dados, o código é estruturado em html e o acesso aos dados e exibição dos gráficos em javascript, de forma a exibir gráficos dinâmicos e com dados atualizados dos indicadores por semana epidemiológica. Os indicadores são: Mortes Acumuladas, Casos Acumulados, Novas Mortes por semana, Novos Casos por semana, Letalidade, Mortalidade, Prevalência, Incidência de Casos, Incidência de Mortes, Fator de Crescimento de Casos e Fator de Crescimento de Mortes.
 ## Pré-Requisitos
   O código é estrurado em html e javascrpt, utilizando as bibliotecas Plotly, NumJS, MathJax e Bootstrap.
 ## Fonte/ Base de Dados Trabalhada:
