@@ -9,8 +9,8 @@
   A implementação e execução do código parte essencialmente da estruturação em html e da leitura do csv e impressão dos gráficos. Primeiramente utiliza-se da modelagem do bootstrap para organizar a exibição do gráfico assim como a seleção do indicador e das anotações sobre o indicador. Além disso, é desenvolvido um script para fazer a leitura dos dados do csv e plotagem dos gráficos, fazendo alterações para cada indicador, legendas e estilizações quanto à visualização. 
 ## Resultado:
   O resultado é uma seção selecionável com os gráficos de linhas associando indicadores à semanas epidemiológicas para cada região do Brasil e o Brasil como um todo, também exibindo anexado uma breve descrição do indicador selecionado. Alguns exemplos são os seguintes:
-  ![image](https://user-images.githubusercontent.com/57276191/109439353-c21feb00-7a0c-11eb-8089-e1b9caf2c791.png)
-  ![image](https://user-images.githubusercontent.com/57276191/109439387-dbc13280-7a0c-11eb-8813-2424d29ab229.png)
+  ![image](https://user-images.githubusercontent.com/57276191/109440353-c5b57100-7a10-11eb-9313-c34d469bfd2d.png)
+  ![image](https://user-images.githubusercontent.com/57276191/109440596-96533400-7a11-11eb-8fd9-4c25781bb058.png)
 ## Acesso:
   Acesse o gráfico no portal do projeto em "http://covid.dcc.ufmg.br/linhas/web/".
 ## Membros:
