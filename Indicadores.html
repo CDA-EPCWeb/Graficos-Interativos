@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- NumJS -->
+  <script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script>
+  <!-- Boostrap -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+<div class="container">
+  <div id="plot">
+    <div id="myDiv" style="width: 100%;"></div>
+    <hr>
+    <div class="card box-shadow">
+      <div class="card-header">
+        <select onchange="reloadPlot(this.options[this.selectedIndex].value)" class="form-control" id="selecionarIndicador"  style="width: 33%;  margin: auto;">
+        </select>
+      </div>
+      <div class="card-body">
+        <p id="note"> </p>
+      </div>
+    </div>
+    <br>
+  </div>
+</div>
+  
+
+  <script> 
+    const dropDown = document.getElementById("selecionarIndicador") // Conectando ao "Dropdown" no HTML
+    const note = document.getElementById("note") // Conectando à parte da observação sobre o indicador.
+    var ind = ''
+    
+    // Função que plota o gráfico:
+    const reloadPlot = function(chosen) {
+      ind = chosen
+      console.log(ind);
+      Plotly.d3.csv(
+        "https://raw.githubusercontent.com/CDA-EPCWeb/Indicadores-Epidemiologicos/master/resultados/indicadores.csv",
+        function(rows) {
+          console.log(rows)
+          var x = [],
+            y = [],
+            r = [],
+            d = [],
+            j = [],
+            m = [],
+            eixo_y = '',
+            dig='',
+            fonte = {},
+            addhline = [],
+            indm = '',
+            subtitulo='',
+            
+
+          titulo = dict[ind]
+          if (['incidence_deaths','incidence_cases','new_week_deaths','new_week_cases'].includes(ind)) {
+            indm = ind+'_mm';
+            subtitulo = '<br>Médias Móveis de 3 semanas';
+          }else {
+            indm = ind
+          }
+          if (ind.includes('last_available')){
+              eixo_y = dict[ind].toLocaleLowerCase().replace('total de', '');
+          }else if( ind.includes('prevalence')){
+              titulo=titulo+" - Casos Acumulados por 100 mil habitantes" 
+              eixo_y='casos acumulados/ 100 mil habitantes'
+          }else if( ind.includes('incidence_cases')){
+              titulo=titulo+" - Novos Casos por 100 mil habitantes" 
+              eixo_y='novos casos/ 100 mil habitantes'
+          }else if( ind.includes('incidence_deaths')){
+              titulo=titulo+" - Novas Mortes por 100 mil habitantes"
+              eixo_y='novas mortes/ 100 mil habitantes'
+          }else if( ind.includes('mortality')){
+              titulo=titulo+" - Óbitos Acumulados por 100 mil habitantes"
+              eixo_y='óbitos acumulados/ 100 mil habitantes'
+          }else if( ind.includes('lethality')){
+              titulo=titulo+" - Óbitos Acumulados/ Casos Acumulados"
+              eixo_y='óbitos acumulados/ casos acumulados'
+          }else if( ind.includes('growth_factor')){
+              eixo_y = dict[ind].toLocaleLowerCase()
+              num=6
+              addhline=[{
+                type: 'line',
+                xref: 'paper',
+                yref: 'plot',
+                y0: 1,
+                x0: 0,
+                x1: 1,
+                y1: 1,
+                opacity: 0.6,
+                line:{
+                  color: 'darkgray',
+                  width: 2,
+                }
+              }]
+          }else {
+              eixo_y = dict[ind].toLocaleLowerCase()
+          }
+          titulo = titulo+' - Brasil, 2020'
+
+          for (var i = 0; i < rows.length; i++) {
+            row = rows[i];
+            if (ind.includes('growth_factor')&& row['epidemiological_week']<15){
+              continue
+            }
+            y.push(row[indm]);
+            x.push(row["epidemiological_week"]);
+            m.push(row["epidemiological_week_mask"]);
+            r.push(row["region"]);
+            d.push(row["week_last_day"]);
+          }
+          function isFloat(n){
+            return n % 1 > 0;
+          };  
+          if(isFloat(y[10])){
+            dig=':,.2f'
+          }else{
+            dig = ':,f'
+          }
+          if (['prevalence','mortality','incidence_cases','incidence_deaths'].includes(ind)){
+            fonte = {
+              text: "Fonte: Secretarias Estaduais de Saúde/Consolidação por Brasil.IO;<br>"+
+              "                       Projeção populacional municipal de Freire, Gonzaga e Queiroz (2019).",
+              x: 1.1,
+              y:- 0.25,
+              yref: 'paper', xref: 'paper',
+              showarrow: false,
+              font: {color:'rgb(150,150,150)', size: 9}
+            }
+          }else {
+            fonte = {
+              text: "Fonte: Secretarias Estaduais de Saúde/Consolidação por Brasil.IO.",
+              x: 1.1,
+              y:- 0.25,
+              yref: 'paper', xref: 'paper',
+              showarrow: false,
+              font: {color:'rgb(150,150,150)', size: 9}
+            }
+          }
+          console.log(y)
+          Plotly.newPlot('myDiv', {
+            data: [
+              {
+                type: "scatter",
+                mode: "lines+markers",
+                x: x,
+                y: y,
+                text: d,
+                customdata: r,
+                transforms: [{ type: "groupby", groups: r ,styles: [
+                  {target: 'Brasil', value: {marker:{symbol:'star-square'},line:{dash:'dash',color: 'dimgray'},hovertemplate:
+                  '<b>'+dict[ind]+'  </b><br>'+'%{y'+dig+'}'+'<br>%{customdata}'+
+                  ', Semana '+'%{x}<br>'+'Data %{text} <extra></extra>'}},
+                  {target: 'Norte', value: {line: {color: 'red'}}},
+                  {target: 'Nordeste', value: {line: {color: '#ff8000'}}},
+                  {target: 'Centro-Oeste', value: {line: {color: 'darkviolet'}}},
+                  {target: 'Sudeste', value: {line: {color: 'dodgerblue'}}},
+                  {target: 'Sul', value: {line: {color: 'seagreen'}}}]
+                }],
+                hovertemplate:
+                  '<b>'+dict[ind]+'  </b><br>'+'%{y'+dig+'}'+'<br>Região %{customdata}'+
+                  ', Semana '+'%{x}<br>'+'Data %{text}<extra></extra>'
+              }
+            ],
+            layout: {
+              title: titulo+subtitulo,
+              plot_bgcolor: '#e6e6e6',
+              font: {family:'Arial', color:'#4d4d4d'},
+              hoverlabel: {bordercolor:'white', font:{color:'white'}},
+              shapes: addhline,
+              hovermode: "closest",
+              legend: { title:{text:'Região'}},
+              xaxis: {
+                title: "Semana Epidemiológica",
+                zeroline: false,
+                gridcolor:'white',
+                tickmode: "array",
+                tickvals: x,
+                ticktext: x.map(x => {
+                  if (x > 53) {
+                    x -= 53
+                  }
+                  return x
+                }),
+                nticks: 10,
+              },
+              yaxis: {
+                tickmode:'auto',
+                nticks:11,
+                title: eixo_y,
+                zeroline: false,
+                gridcolor:'white',
+              },
+              annotations: [
+                {
+                  text: 'Covid Data Analytics',
+                  x: 0.5,
+                  y:- 0.27,
+                  yref: 'paper', xref: 'paper',
+                  showarrow: false,
+                  font: {color:'rgb(150,150,150)', size: 12}
+                },
+                fonte
+              ],
+            },
+            config: { responsive: true }
+          });
+        }
+      )
+
+      note.innerHTML = texts[ind].replace("\n", "<br><br>")
+
+    }
+    
+    var dict = {
+      'last_available_confirmed': 'Total de Casos Acumulados confirmados',
+      'last_available_deaths': 'Total de Mortes acumuladas confirmadas',
+      'new_week_cases': 'Novos casos registrados',
+      'new_week_deaths': 'Novas mortes registradas',
+      'mortality': 'Mortalidade',
+      'prevalence': 'Prevalência',
+      'lethality': 'Letalidade',
+      'incidence_cases': 'Incidência de casos',
+      'incidence_deaths': 'Incidência de mortes',
+      'cases_growth_factor': 'Fator de crescimento de casos',
+      'deaths_growth_factor': 'Fator de crescimento de mortes'
+    };
+    
+    var texts = {
+      'last_available_confirmed': "O total de casos acumulados confirmados é número total de casos de Covid-19 registrados até o final de cada semana epidemiológica.\nRepresenta o somatório de todos os casos em cada região brasileira desde o início da epidemia. Por ser um valor acumulado, a tendência é sempre de aumento  —  a cada semana, novos casos são somados aos acumulados até a semana anterior.",
+      'last_available_deaths': 'Total de mortes acumuladas confirmadas é o número total de óbitos por Covid-19 registrados até o final de cada semana epidemiológica.\nRepresenta o somatório de todas as mortes em cada região brasileira desde o início da epidemia. Assim como ocorre com o total de casos acumulados, a tendência do total de mortes acumuladas é sempre de aumento ao longo do tempo.',
+      'new_week_cases': 'Novos casos confirmados de Covid-19 registrados nas regiões brasileiras em cada semana epidemiológica. O gráfico exibe a média móvel nas últimas três semanas, de modo a facilitar a visualização da tendência deste indicador ao longo do tempo em cada região.\nEm geral, ao longo da curva epidêmica, espera-se que o número de novos casos aumente nos períodos iniciais e decresça nos períodos finais de uma epidemia.',
+      'new_week_deaths': 'Novos óbitos por Covid-19 registrados nas regiões brasileiras em cada semana epidemiológica. O gráfico exibe a média móvel nas últimas três semanas, de modo a facilitar a visualização da tendência deste indicador ao longo do tempo em cada região.',
+      'prevalence': 'Definimos o total de casos acumulados por 100 mil habitantes como medida para a prevalência de casos de Covid-19 no Brasil. Este indicador representa uma medida relativa, em que são considerados os casos acumulados e a população residente em cada região.\nEste indicador não considera a parcela de curados e, por isso, não deve ser interpretado como representativo do volume de pessoas doentes em cada semana epidemiológica. O indicador representa o volume de pessoas contaminadas, com confirmação da doença. Por utilizar os totais acumulados de infectados (casos acumulados), a tendência desta medida é sempre de aumento ao longo do tempo.',
+      'mortality': 'Definimos o total de mortes acumuladas por 100 mil habitantes como medida para a mortalidade por Covid-19 no Brasil. Este indicador representa uma medida relativa, em que são considerados os óbitos acumulados e a população residente em cada região.\nEste indicador é mais apropriado para avaliar o impacto da doença do que o número absoluto de óbitos e permite comparação entre as regiões.\nComo é uma razão em que, no numerador, os óbitos se acumulam ao longo do tempo e, no denominador, a estimativa da população de 2020 não se altera, o indicador tende a aumentar à medida que as semanas epidemiológicas avançam.',
+      'lethality': 'Definimos a razão entre o total de mortes acumuladas e o total de casos acumulados como medida para a letalidade da Covid-19 no Brasil. Este indicador, expresso em porcentagem, é a proporção de óbitos em relação ao número de casos confirmados em cada região.\nO indicador de letalidade relaciona-se com a gravidade da doença e com os recursos em saúde (disponibilidade de leitos de UTI, por exemplo). Entretanto, esta medida também é influenciada por problemas de subnotificação. Se há maior subnotificação dos casos do que dos óbitos, o nível de letalidade estimado tende a ser maior do que a letalidade real da doença. Isso pode ser observado nas primeiras semanas da epidemia no Brasil —  com poucos casos testados e confirmados, a letalidade aparece bem maior do que nas semanas subsequentes, quando os testes para diagnóstico da Covid-19 deixaram de ser tão escassos.',
+      'incidence_cases': 'Definimos o número de novos casos por 100 mil habitantes como medida para a incidência de casos de Covid-19 no Brasil. Este indicador representa uma medida relativa, em que são considerados os novos casos semanais e a população residente em cada região. Para melhor visualização, é apresentada a média móvel das últimas três semanas.\nPode ser considerada uma aproximação do risco de um indivíduo não infectado vir a contrair a doença em uma determinada semana epidemiológica. Vale ressaltar aqui que a métrica da incidência é interessante por relativizar o contingente bruto de novos casos para um tamanho fixo da população, de modo a melhor expressar a proporção dos indivíduos recentemente notificados em relação ao total de habitantes de cada região.',
+      'incidence_deaths': 'Definimos o número de novas mortes por 100 mil habitantes como medida para a incidência de mortes por Covid-19 no Brasil. Este indicador representa uma medida relativa, em que são consideradas as novas mortes semanais e a população residente em cada região. Para melhor visualização, é apresentada a média móvel das últimas três semanas.\nPor ser uma medida relativa, é mais apropriado utilizar o indicador de novas mortes por 100 mil habitantes para comparar diferenças regionais do que o número absoluto de novas mortes semanais.',
+      'cases_growth_factor': 'Fator de crescimento dos casos calculado pela razão <i>número de novos casos na semana</i> / <i>número de novos casos na semana anterior</i>. O fator de crescimento é útil para avaliar o estágio da pandemia, ao comparar a incidência de casos entre dois períodos consecutivos.\n Um fator de crescimento entre zero (0) e um (1) indica desaceleração da pandemia, enquanto um fator de crescimento superior a um (1) indica sua aceleração.\nUma desvantagem do fator de crescimento é a variação na metodologia de confirmação de casos: caso ela seja abruptamente modificada, é possível haver uma oscilação rápida e artificial do número de casos, que pode ser visualizada como um fator de crescimento muito alto ou negativo (sendo este último um resultado apenas teórico). Além disso, por ser um índice e não considerar casos brutos, o fator de crescimento é pouco útil para avaliar condições de saúde diferentes, sendo, portanto, direcionado para a análise temporal da evolução de uma doença em dado local ou para a comparação entre diferentes regiões, uma vez que ele representa o ritmo da expansão da doença infecciosa.',
+      'deaths_growth_factor': 'Fator de crescimento dos óbitos calculado pela razão <i>número de novos óbitos na semana</i> / <i>número de novos óbitos na semana anterior</i>.'
+    }
+
+    // Gerando options do select (dropdown)
+    var options = []
+    for (option in dict) {
+      options.push(option)
+    }
+    
+    var optionsText = []
+    for (option in dict) {
+      optionsText.push(dict[option])
+    }
+    
+    optionsText.forEach((option, index) => {
+      var htmlOption = document.createElement("option")
+      optionText = document.createTextNode(option)
+      htmlOption.appendChild(optionText)
+      htmlOption.setAttribute("value", options[index])
+      dropDown.appendChild(htmlOption)
+    });
+
+    document.onload = reloadPlot(options[0])
+    
+  </script>
+
+</body>
+
+
+</html>
